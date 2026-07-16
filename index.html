@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurora Studio</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Apply the saved theme before paint (manual choice, default dark).
+        (function () {
+            var t = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
+</head>
+<body>
+    <div id="drag-region"></div>
+    <div class="layout">
+        <aside class="sidebar">
+            <h1 class="logo">AURORA STUDIO</h1>
+            <nav>
+                <button class="nav-btn active" data-target="batch-view">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                        <path d="M4 14l4 4-4 4" /><path d="M20 10l-4-4 4-4" />
+                    </svg>
+                    Batch Tools
+                </button>
+                <button class="nav-btn" data-target="pdf-view">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4" />
+                        <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                        <rect x="2" y="11" width="10" height="7" rx="1" />
+                        <path d="M12 11l-3 3-2-2-3 3" />
+                    </svg>
+                    Image to PDF
+                </button>
+                <button class="nav-btn" data-target="combiner-view">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                        <path d="M3 9h18" /><path d="M9 21V9" />
+                    </svg>
+                    Combiner
+                </button>
+                <button class="nav-btn" data-target="rename-view">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                        <path d="m15 5 4 4"/>
+                    </svg>
+                    Renamer
+                </button>
+                <button class="nav-btn" data-target="clean-view">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <path d="M9 12l2 2 4-4"/>
+                    </svg>
+                    Pulizia Metadati
+                </button>
+                <button class="nav-btn" data-target="bitw-view">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        <circle cx="12" cy="16" r="1"/>
+                    </svg>
+                    Password → PDF
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="theme-toggle" class="toggle-btn theme-btn" title="Cambia tema chiaro/scuro">
+                    <span class="theme-icon icon-moon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    </span>
+                    <span class="theme-icon icon-sun" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+                    </span>
+                    <span class="theme-label label-dark">Tema scuro</span>
+                    <span class="theme-label label-light">Tema chiaro</span>
+                </button>
+                <button id="continuous-toggle" class="toggle-btn active" title="Mantieni la lista dei file quando passi da un tool all'altro">
+                    <span class="toggle-check" aria-hidden="true"></span>
+                    <span>Canvas continua</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="content">
+            <!-- BATCH VIEW -->
+            <section id="batch-view" class="view active">
+                <header class="view-header">
+                    <h2>BATCH PROCESSOR</h2>
+                    <p>Ridimensiona, converti e ottimizza</p>
+                </header>
+                <div class="split-layout">
+                    <div class="left-col">
+                        <div class="file-list-card">
+                            <div class="card-header">
+                                <h3>File selezionati</h3>
+                                <button class="btn-ghost" id="batch-add-btn">Aggiungi</button>
+                                <button class="btn-ghost" id="batch-clear-btn">Svuota</button>
+                            </div>
+                            <ul id="batch-file-list" class="file-list drop-target" data-list="batch"></ul>
+                        </div>
+                    </div>
+                    <div class="right-col">
+                        <div class="controls-card">
+                            <div class="field">
+                                <label>Formato Output</label>
+                                <select id="batch-format">
+                                    <option value="Originale">Originale</option>
+                                    <option value="JPG">JPG</option>
+                                    <option value="PNG">PNG</option>
+                                    <option value="WEBP">WEBP</option>
+                                </select>
+                            </div>
+                            <div class="field" id="batch-mode-field" style="display:none">
+                                <label>Modalità compressione</label>
+                                <select id="batch-mode">
+                                    <option>Lossless (Non distruttivo)</option>
+                                    <option>Lossy (Compresso)</option>
+                                </select>
+                            </div>
+                            <div class="field" id="batch-quality-field" style="display:none">
+                                <label>Ottimizzazione (Qualità %)</label>
+                                <input type="range" id="batch-quality" min="1" max="100" value="90">
+                                <span class="val-display" id="batch-quality-val">90%</span>
+                            </div>
+                            <div class="field-row">
+                                <div class="field half">
+                                    <label>Larghezza (px)</label>
+                                    <input type="number" id="batch-width" placeholder="Auto">
+                                </div>
+                                <div class="field half">
+                                    <label>Altezza (px)</label>
+                                    <input type="number" id="batch-height" placeholder="Auto">
+                                </div>
+                            </div>
+                            <button class="btn-primary" id="batch-start-btn">Avvia Batch</button>
+                            <div class="progress-wrap"><div class="progress-bar" id="batch-progress"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PDF VIEW -->
+            <section id="pdf-view" class="view">
+                <header class="view-header">
+                    <h2>IMAGE TO PDF</h2>
+                    <p>Unisci le immagini in un unico documento</p>
+                </header>
+                <div class="split-layout">
+                    <div class="left-col">
+                        <div class="file-list-card">
+                            <div class="card-header">
+                                <h3>Ordine Pagine</h3>
+                                <button class="btn-ghost" id="pdf-add-btn">Aggiungi</button>
+                                <button class="btn-ghost" id="pdf-clear-btn">Svuota</button>
+                            </div>
+                            <div class="sort-bar">
+                                <button class="sort-btn active" data-sort="name" data-list-id="pdf">Nome</button>
+                                <button class="sort-btn" data-sort="birth" data-list-id="pdf">Creazione</button>
+                                <button class="sort-btn" data-sort="mtime" data-list-id="pdf">Modifica</button>
+                                <button class="sort-reverse-btn" data-list-id="pdf" title="Inverti ordine">⇅</button>
+                            </div>
+                            <ul id="pdf-file-list" class="file-list drop-target" data-list="pdf"></ul>
+                        </div>
+                    </div>
+                    <div class="right-col">
+                        <div class="controls-card">
+                            <div class="field">
+                                <label>Nome file output</label>
+                                <input type="text" id="pdf-name" value="" placeholder="Auto dal primo file">
+                            </div>
+                            <div class="field">
+                                <label>Orientamento pagina</label>
+                                <select id="pdf-orientation">
+                                    <option value="auto">Auto</option>
+                                    <option value="p">Verticale (P)</option>
+                                    <option value="l">Orizzontale (L)</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label>Margini (px)</label>
+                                <select id="pdf-margins">
+                                    <option value="0">0</option>
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
+                                    <option value="20">20</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="pdf-optimize">
+                                    Ottimizza dimensione PDF (Lossy)
+                                </label>
+                            </div>
+                            <div class="field" id="pdf-quality-field" style="display:none">
+                                <label>Qualità Immagini (%)</label>
+                                <input type="range" id="pdf-quality" min="1" max="100" value="75">
+                                <span class="val-display" id="pdf-quality-val">75%</span>
+                            </div>
+                            <button class="btn-primary" id="pdf-start-btn">Genera PDF</button>
+                            <div class="progress-wrap"><div class="progress-bar" id="pdf-progress"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COMBINER VIEW -->
+            <section id="combiner-view" class="view">
+                <header class="view-header">
+                    <h2>COMBINER</h2>
+                    <p>Affianca o impila immagini e splitta</p>
+                </header>
+                <div class="split-layout">
+                    <div class="left-col">
+                        <div class="file-list-card">
+                            <div class="card-header">
+                                <h3>Immagini (ordine unione)</h3>
+                                <button class="btn-ghost" id="comb-add-btn">Aggiungi</button>
+                                <button class="btn-ghost" id="comb-clear-btn">Svuota</button>
+                            </div>
+                            <div class="sort-bar">
+                                <button class="sort-btn active" data-sort="name" data-list-id="comb">Nome</button>
+                                <button class="sort-btn" data-sort="birth" data-list-id="comb">Creazione</button>
+                                <button class="sort-btn" data-sort="mtime" data-list-id="comb">Modifica</button>
+                                <button class="sort-reverse-btn" data-list-id="comb" title="Inverti ordine">⇅</button>
+                            </div>
+                            <ul id="comb-file-list" class="file-list drop-target" data-list="comb"></ul>
+                        </div>
+                    </div>
+                    <div class="right-col">
+                        <div class="controls-card">
+                            <div class="field">
+                                <label>Direzione combinazione</label>
+                                <select id="comb-direction">
+                                    <option value="v">Verticale (impila)</option>
+                                    <option value="h">Orizzontale (affianca)</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label>Splitta dopo (es. 12, 24)</label>
+                                <input type="text" id="comb-split" placeholder="Lascia vuoto per file singolo">
+                            </div>
+                            <button class="btn-primary" id="comb-start-btn">Salva</button>
+                            <div class="progress-wrap"><div class="progress-bar" id="comb-progress"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RENAMER VIEW -->
+            <section id="rename-view" class="view">
+                <header class="view-header">
+                    <h2>BATCH RENAMER</h2>
+                    <p>Rinomina file in blocco</p>
+                </header>
+                <div class="split-layout">
+                    <div class="left-col">
+                        <div class="file-list-card">
+                            <div class="card-header">
+                                <h3>File da rinominare</h3>
+                                <button class="btn-ghost" id="ren-add-btn">Aggiungi</button>
+                                <button class="btn-ghost" id="ren-clear-btn">Svuota</button>
+                            </div>
+                            <div class="rename-preview-wrap">
+                                <div class="rename-col">
+                                    <span class="rename-col-label">Originale</span>
+                                    <ul id="ren-file-list" class="file-list drop-target" data-list="ren"></ul>
+                                </div>
+                                <div class="rename-col">
+                                    <span class="rename-col-label">Anteprima</span>
+                                    <ul id="ren-preview-list" class="file-list preview-list"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="right-col">
+                        <div class="controls-card">
+                            <div class="field">
+                                <label>Aggiungi Prefisso</label>
+                                <input type="text" id="ren-prefix" placeholder="Es: foto_">
+                            </div>
+                            <div class="field">
+                                <label>Aggiungi Suffisso</label>
+                                <input type="text" id="ren-suffix" placeholder="Es: _final">
+                            </div>
+                            <div class="field">
+                                <label>Rimuovi testo dal nome</label>
+                                <input type="text" id="ren-remove" placeholder="Testo da eliminare">
+                            </div>
+                            <div class="field">
+                                <label>Trova</label>
+                                <input type="text" id="ren-find" placeholder="Testo da cercare">
+                            </div>
+                            <div class="field">
+                                <label>Sostituisci con</label>
+                                <input type="text" id="ren-replace" placeholder="Testo sostitutivo">
+                            </div>
+                            <button class="btn-primary" id="ren-start-btn">Rinomina</button>
+                            <div class="progress-wrap"><div class="progress-bar" id="ren-progress"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- METADATA CLEANER VIEW -->
+            <section id="clean-view" class="view">
+                <header class="view-header">
+                    <h2>PULIZIA METADATI</h2>
+                    <p>Rimuovi i dati privati da immagini, video e PDF</p>
+                </header>
+                <div class="split-layout">
+                    <div class="left-col">
+                        <div class="file-list-card">
+                            <div class="card-header">
+                                <h3>File da ripulire</h3>
+                                <button class="btn-ghost" id="clean-add-btn">Aggiungi</button>
+                                <button class="btn-ghost" id="clean-clear-btn">Svuota</button>
+                            </div>
+                            <ul id="clean-file-list" class="file-list drop-target" data-list="clean"></ul>
+                        </div>
+                    </div>
+                    <div class="right-col">
+                        <div class="controls-card">
+                            <div class="clean-info">
+                                <p>Crea copie prive di metadati sensibili, senza toccare gli originali. Vengono rimossi:</p>
+                                <ul>
+                                    <li><strong>Immagini</strong> — EXIF, posizione GPS, data/ora, modello dispositivo, software, miniature e XMP/IPTC. Il profilo colore viene mantenuto.</li>
+                                    <li><strong>Video</strong> — posizione GPS, data di creazione, dispositivo e capitoli. Nessuna ricompressione: qualità intatta.</li>
+                                    <li><strong>PDF</strong> — autore, titolo, software di creazione, date e metadati XMP.</li>
+                                </ul>
+                                <p class="clean-note">Formati: JPG, PNG, WEBP, AVIF, TIFF, GIF, BMP, HEIC · MP4, MOV, MKV, WEBM, AVI e altri · PDF.<br>I file ripuliti vengono salvati con il suffisso <code>_clean</code>.</p>
+                            </div>
+                            <button class="btn-primary" id="clean-start-btn">Ripulisci</button>
+                            <div class="progress-wrap"><div class="progress-bar" id="clean-progress"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BITWARDEN PASSWORD → PDF VIEW -->
+            <section id="bitw-view" class="view">
+                <header class="view-header">
+                    <h2>PASSWORD → PDF</h2>
+                    <p>Stampa un export Bitwarden (JSON) in un PDF ordinato per cartella</p>
+                </header>
+                <div class="split-layout">
+                    <div class="left-col">
+                        <div class="file-list-card">
+                            <div class="card-header">
+                                <h3>Anteprima</h3>
+                                <span id="bitw-count" class="bitw-count"></span>
+                            </div>
+                            <div id="bitw-output" class="bitw-output drop-target">
+                                <p class="bitw-empty">Scegli o trascina qui un file <code>.json</code> esportato da Bitwarden.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="right-col">
+                        <div class="controls-card">
+                            <div class="field">
+                                <label>File di export</label>
+                                <button class="btn-ghost bitw-file-btn" id="bitw-file-btn">Scegli file JSON…</button>
+                                <span id="bitw-filename" class="bitw-filename"></span>
+                            </div>
+                            <div class="field">
+                                <label>Font del PDF</label>
+                                <select id="bitw-font">
+                                    <option value="Georgia" selected>Georgia (Predefinito)</option>
+                                    <option value="Arial">Arial</option>
+                                    <option value="Times New Roman">Times New Roman</option>
+                                    <option value="Verdana">Verdana</option>
+                                    <option value="Courier New">Courier New</option>
+                                    <option value="Tahoma">Tahoma</option>
+                                    <option value="Trebuchet MS">Trebuchet MS</option>
+                                    <option value="Lucida Console">Lucida Console</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label>Font personalizzato</label>
+                                <div class="field-row">
+                                    <input type="text" id="bitw-font-input" placeholder="Scrivi un font…">
+                                    <button class="btn-ghost" id="bitw-font-apply">Applica</button>
+                                </div>
+                            </div>
+                            <button class="btn-primary" id="bitw-export-btn" disabled>Esporta PDF</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div id="toast">Operazione completata!</div>
+    <script src="renderer.js"></script>
+</body>
+</html>

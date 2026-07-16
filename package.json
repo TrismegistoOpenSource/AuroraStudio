@@ -1,0 +1,104 @@
+{
+  "name": "aurora-studio",
+  "version": "1.0.0",
+  "description": "Aurora Studio — image toolkit, TypeScript + Electron, Gemini-style UI",
+  "main": "main.js",
+  "scripts": {
+    "compile": "tsc",
+    "start": "npm run compile && electron .",
+    "build:mac": "npm run build:mac-arm && npm run build:mac-intel",
+    "build:mac-intel": "npm run compile && electron-builder --mac --x64 -c.appId=com.aurorastudio.app.intel -c.productName=AuroraStudio-Intel",
+    "build:mac-arm": "npm run compile && electron-builder --mac --arm64 -c.appId=com.aurorastudio.app.arm64 -c.productName=AuroraStudio-AppleSilicon",
+    "build:win": "npm run compile && electron-builder --win",
+    "build:linux": "npm run compile && electron-builder --linux",
+    "postinstall": "node scripts/prepare-mac-sharp.js && node scripts/prepare-ffmpeg.js"
+  },
+  "author": "Nicolò Evandri",
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://github.com/TrismegistoOpenSource/AuroraStudio",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TrismegistoOpenSource/AuroraStudio.git"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "electron": "^43.0.0",
+    "electron-builder": "^26.15.3",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0",
+    "pdf-lib": "^1.17.1",
+    "sharp": "^0.35.3"
+  },
+  "build": {
+    "appId": "com.aurorastudio.app",
+    "productName": "AuroraStudio",
+    "beforePack": "./scripts/ensure-electron-dist.cjs",
+    "afterPack": "./afterPack.js",
+    "directories": {
+      "output": "../build",
+      "buildResources": "icons"
+    },
+    "extraResources": [
+      { "from": "LICENSE", "to": "licenses/LICENSE.txt" },
+      { "from": "THIRD-PARTY-LICENSES.md", "to": "licenses/THIRD-PARTY-LICENSES.md" },
+      { "from": "licenses", "to": "licenses" },
+      { "from": "node_modules/electron/dist/LICENSE", "to": "licenses/LICENSE.electron.txt" },
+      { "from": "node_modules/electron/dist/LICENSES.chromium.html", "to": "licenses/LICENSES.chromium.html" }
+    ],
+    "files": [
+      "**/*",
+      "!src/**",
+      "!scripts/**",
+      "!resources/**",
+      "!**/*.ts",
+      "!tsconfig.json",
+      "!afterPack.js",
+      "!README.md",
+      "!BUILD.md",
+      "!.gitignore"
+    ],
+    "asarUnpack": [
+      "**/node_modules/sharp/**",
+      "**/node_modules/@img/**",
+      "**/node_modules/ffmpeg-static/**"
+    ],
+    "mac": {
+      "icon": "icons/icon.icns",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "target": [
+        {
+          "target": "dmg"
+        }
+      ],
+      "category": "public.app-category.photography",
+      "extraResources": [
+        { "from": "resources/ffmpeg/darwin-${arch}", "to": "ffmpeg" }
+      ]
+    },
+    "win": {
+      "icon": "icons/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "extraResources": [
+        { "from": "resources/ffmpeg/win32-x64", "to": "ffmpeg" }
+      ]
+    },
+    "linux": {
+      "icon": "icons/icon.png",
+      "target": [
+        "AppImage"
+      ],
+      "category": "Graphics",
+      "extraResources": [
+        { "from": "resources/ffmpeg/linux-x64", "to": "ffmpeg" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,17 @@
+node_modules/
+# Gli artefatti veri stanno in ../build/, fuori dal repo: non serve ignorarli.
+# dist/ è solo l'output usato dalla CI (vedi -c.directories.output nel workflow).
+dist/
+
+# TypeScript build output (rigenerato da `npm run compile`)
+main.js
+preload.js
+renderer.js
+
+# binari ffmpeg scaricati da scripts/prepare-ffmpeg.js
+resources/ffmpeg/
+
+# icona temporanea
+icons/icon.iconset/
+
+.DS_Store

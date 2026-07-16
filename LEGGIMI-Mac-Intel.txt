@@ -1,0 +1,34 @@
+AURORA STUDIO — nota per Mac
+=============================
+
+Se al primo avvio compare l'errore:
+
+    «Impossibile aprire l'applicazione "AuroraStudio-Intel.app".»
+    (o "AuroraStudio-AppleSilicon.app")
+
+NON è un problema dell'app: è la QUARANTENA di macOS, perché l'app non è
+firmata con un Apple Developer ID (né notarizzata).
+
+COME SBLOCCARLA (una volta sola)
+--------------------------------
+1. Trascina l'app dal dmg nella cartella Applicazioni.
+2. Apri l'app "Terminale" e incolla il comando della versione che hai
+   scaricato, poi premi Invio:
+
+       xattr -dr com.apple.quarantine /Applications/AuroraStudio-AppleSilicon.app
+
+       xattr -dr com.apple.quarantine /Applications/AuroraStudio-Intel.app
+
+3. Apri l'app normalmente (doppio clic).
+
+In alternativa: click destro (o Ctrl-clic) sull'app → "Apri" → di nuovo "Apri".
+
+QUALE SCARICARE
+---------------
+  • AuroraStudio-AppleSilicon-1.0.0-arm64.dmg  → Mac Apple Silicon (M1/M2/M3/…)
+  • AuroraStudio-Intel-1.0.0.dmg               → Mac Intel
+
+Le due app hanno nomi diversi apposta: con lo stesso nome e lo stesso
+identificativo interno macOS le tratterebbe come la stessa applicazione e ne
+aprirebbe una sola, quella sbagliata. Le impostazioni restano comunque in
+comune se passi dall'una all'altra.
