@@ -1,6 +1,6 @@
 {
   "name": "aurora-studio",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Aurora Studio — image toolkit, TypeScript + Electron, Gemini-style UI",
   "main": "main.js",
   "scripts": {
