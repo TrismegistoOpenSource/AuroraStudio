@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 /*
- * Regenerates icons/icon.icns and icons/icon.png from icons/icon-source.jpg
- * (the aurora image), masked into a rounded macOS tile.
+ * Rigenera icons/icon.icns e icons/icon.png: sfondo squircle e gradiente
+ * ciano→indigo identici a RsyncGUI/Encryptor/SmartView (palette unificata
+ * tra le app Trismegisto), con il glifo "Aloni" (archi concentrici, come
+ * un'aurora vista di fronte) al posto della vecchia foto ritagliata.
  *
- * Requires: sharp (project dependency) + `iconutil` (macOS, for the .icns).
+ * Requires: sharp (project dependency) + `iconutil` (macOS, per l'.icns).
  * Run:  node icons/make-icon.js
  */
 const sharp = require('sharp');
@@ -12,17 +14,45 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 
 const BUILD = __dirname;
-const SRC = path.join(BUILD, 'icon-source.jpg');
 const ISET = path.join(BUILD, 'icon.iconset');
+const S = 1024;
+
+function iconSvg() {
+  const cx = S / 2;
+  const ccyAppKit = S * 0.30;
+  const ccySvg = S - ccyAppKit;
+  const lw = S * 0.052;
+  const startDeg = 25, endDeg = 155;
+  const startRad = (startDeg * Math.PI) / 180;
+  const cosA = Math.cos(startRad), sinA = Math.sin(startRad);
+
+  const rings = [S * 0.14, S * 0.20, S * 0.26].map((r, i) => {
+    const x1 = cx + r * cosA, x2 = cx - r * cosA;
+    const y = ccySvg - r * sinA;
+    const width = lw * (1 - i * 0.12);
+    return `<path d="M ${x1} ${y} A ${r} ${r} 0 0 0 ${x2} ${y}" fill="none" stroke="url(#logo)" stroke-width="${width}" stroke-linecap="round"/>`;
+  }).join('\n    ');
+
+  return `<svg width="${S}" height="${S}" viewBox="0 0 ${S} ${S}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#131620"/>
+      <stop offset="1" stop-color="#202433"/>
+    </linearGradient>
+    <linearGradient id="logo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4fd1ff"/>
+      <stop offset="1" stop-color="#5b6cff"/>
+    </linearGradient>
+  </defs>
+  <rect x="20" y="20" width="${S - 40}" height="${S - 40}" rx="220" ry="220" fill="url(#bg)"/>
+  <rect x="23" y="23" width="${S - 46}" height="${S - 46}" rx="217" ry="217"
+        fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="6"/>
+  ${rings}
+</svg>`;
+}
 
 (async () => {
-  const img = await sharp(SRC).resize(936, 936, { fit: 'cover' }).png().toBuffer();
-  const placed = await sharp({ create: { width: 1024, height: 1024, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
-    .composite([{ input: img, left: 44, top: 44 }]).png().toBuffer();
-  const mask = await sharp(Buffer.from(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024"><rect x="44" y="44" width="936" height="936" rx="208" fill="#fff"/></svg>`
-  )).png().toBuffer();
-  const rounded = await sharp(placed).composite([{ input: mask, blend: 'dest-in' }]).png().toBuffer();
+  const rounded = await sharp(Buffer.from(iconSvg())).png().toBuffer();
 
   fs.mkdirSync(ISET, { recursive: true });
   const sizes = {
